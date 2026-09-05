@@ -522,7 +522,7 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
             <span>
               {isGoogleLoading 
                 ? (language === 'hi' ? 'गूगल खाता जुड़ रहा है...' : 'Connecting to Google...')
-                : (language === 'hi' ? 'Google से साइन-इन करें (1-क्लिक)' : 'Continue with Google (1-Click)')}
+                : (language === 'hi' ? 'Google से साइन-इन करें' : 'Continue with Google')}
             </span>
           </button>
 
@@ -747,36 +747,7 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
           </form>
         )}
 
-        {/* 1-Tap Quick Demo Logins Section */}
-        <div className="pt-4 border-t border-slate-200/80 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-600 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>{language === 'hi' ? '1-क्लिक त्वरित डेमो लॉगिन:' : '1-Click Quick Demo Login:'}</span>
-            </span>
-            <span className="text-[10px] text-slate-400">
-              {language === 'hi' ? 'बिना टाइप किए तुरंत जांचें' : 'Instant testing without typing'}
-            </span>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {DEMO_FARMERS.map((df, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleQuickDemoLogin(df)}
-                className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-400 text-left transition cursor-pointer group shadow-2xs"
-              >
-                <div className="text-xs font-black text-slate-900 group-hover:text-emerald-800 truncate">
-                  {df.name.split(' ')[0]} ({df.district})
-                </div>
-                <div className="text-[10px] text-slate-500 truncate mt-0.5">
-                  {df.state} • {df.primaryCrop}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Trust Badges Footer */}
         <div className="pt-2 text-center text-[11px] text-slate-400 flex items-center justify-center gap-4 flex-wrap">
