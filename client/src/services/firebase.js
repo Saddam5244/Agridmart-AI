@@ -110,7 +110,7 @@ export async function signInWithGoogle() {
         if (error.code === 'auth/popup-closed-by-user') {
           userFriendlyMessage = "साइन-इन विंडो बंद कर दी गई (Sign-in popup closed by user).";
         } else if (error.code === 'auth/unauthorized-domain') {
-          userFriendlyMessage = "Unauthorized Domain: Please add 'localhost' in Firebase Console > Authentication > Settings > Authorized Domains.";
+          userFriendlyMessage = "Unauthorized Domain: Please refresh the page and try again.";
         } else if (error.code === 'auth/cancelled-popup-request') {
           userFriendlyMessage = "Sign-in request cancelled.";
         } else if (error.code === 'auth/network-request-failed') {
