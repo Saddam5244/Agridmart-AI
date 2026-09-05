@@ -17,8 +17,7 @@ import {
   Languages
 } from 'lucide-react';
 import { SUPPORTED_LANGUAGES } from '../utils/languages';
-import { signInWithGoogle, isFirebaseConfigured, saveFirebaseConfig, getFirebaseConfig } from '../services/firebase';
-import { Settings, X, Key } from 'lucide-react';
+import { signInWithGoogle } from '../services/firebase';
 
 // Comprehensive Indian State & District database
 export const STATE_DISTRICT_MAP = {
@@ -182,15 +181,8 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
   const [loginMobile, setLoginMobile] = useState('');
   const [loginPin, setLoginPin] = useState('');
 
-  // Google Sign-In & Firebase Config State
+  // Google Sign-In State
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [showConfigModal, setShowConfigModal] = useState(false);
-  const [configSnippet, setConfigSnippet] = useState('');
-  const [configApiKey, setConfigApiKey] = useState(() => getFirebaseConfig().apiKey || '');
-  const [configAuthDomain, setConfigAuthDomain] = useState(() => getFirebaseConfig().authDomain || '');
-  const [configProjectId, setConfigProjectId] = useState(() => getFirebaseConfig().projectId || '');
-  const [configAppId, setConfigAppId] = useState(() => getFirebaseConfig().appId || '');
-  const [isLiveConfigured, setIsLiveConfigured] = useState(() => isFirebaseConfigured());
 
   // Districts for selected registration state
   const availableDistricts = useMemo(() => {
@@ -399,43 +391,7 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
     }
   };
 
-  // Save Custom Firebase Credentials entered via Modal
-  const handleSaveFirebaseConfig = (e) => {
-    e.preventDefault();
-    let finalConfig = {
-      apiKey: configApiKey.trim(),
-      authDomain: configAuthDomain.trim(),
-      projectId: configProjectId.trim(),
-      appId: configAppId.trim()
-    };
 
-    if (configSnippet.trim()) {
-      try {
-        const text = configSnippet;
-        const apiKeyMatch = text.match(/apiKey:\s*["']([^"']+)["']/);
-        const authDomainMatch = text.match(/authDomain:\s*["']([^"']+)["']/);
-        const projectIdMatch = text.match(/projectId:\s*["']([^"']+)["']/);
-        const appIdMatch = text.match(/appId:\s*["']([^"']+)["']/);
-
-        if (apiKeyMatch) finalConfig.apiKey = apiKeyMatch[1];
-        if (authDomainMatch) finalConfig.authDomain = authDomainMatch[1];
-        if (projectIdMatch) finalConfig.projectId = projectIdMatch[1];
-        if (appIdMatch) finalConfig.appId = appIdMatch[1];
-      } catch (err) {
-        console.warn("Could not parse config snippet", err);
-      }
-    }
-
-    if (!finalConfig.apiKey || !finalConfig.projectId) {
-      setErrorMsg(language === 'hi' ? 'कृपया मान्य Firebase API Key और Project ID दर्ज करें।' : 'Please enter valid Firebase API Key and Project ID.');
-      return;
-    }
-
-    saveFirebaseConfig(finalConfig);
-    setIsLiveConfigured(true);
-    setShowConfigModal(false);
-    setSuccessMsg(language === 'hi' ? 'फायरबेस प्रोजेक्ट सफलतापूर्वक कनेक्ट हुआ!' : 'Firebase Project connected successfully!');
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-slate-900 to-emerald-900 flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden selection:bg-emerald-500 selection:text-white">
@@ -570,26 +526,7 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
             </span>
           </button>
 
-          {/* Status & Config Helper Link */}
-          <div className="flex items-center justify-between text-[11px] px-1 text-slate-500">
-            <span className="flex items-center gap-1.5 font-medium">
-              <span className={`w-2 h-2 rounded-full ${isLiveConfigured ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`}></span>
-              <span>
-                {isLiveConfigured 
-                  ? (language === 'hi' ? '🟢 लाइव फायरबेस सक्रिय' : '🟢 Live Firebase OAuth') 
-                  : (language === 'hi' ? '⚡ 1-क्लिक गूगल लॉगिन तैयार' : '⚡ 1-Click Google Ready')}
-              </span>
-            </span>
 
-            <button
-              type="button"
-              onClick={() => setShowConfigModal(true)}
-              className="text-emerald-700 hover:text-emerald-900 font-bold underline flex items-center gap-1 cursor-pointer"
-            >
-              <Settings className="w-3 h-3" />
-              <span>{language === 'hi' ? 'फायरबेस कुंजी सेटअप ⚙️' : 'Firebase Setup ⚙️'}</span>
-            </button>
-          </div>
 
           <div className="relative flex items-center justify-center pt-1">
             <div className="border-t border-slate-200 w-full"></div>
@@ -853,123 +790,7 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
 
       </div>
 
-      {/* ⚙️ FIREBASE PROJECT SETUP MODAL */}
-      {showConfigModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <div className="flex items-center space-x-2.5">
-                <div className="p-2 rounded-xl bg-amber-100 text-amber-700">
-                  <Key className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-900">
-                    {language === 'hi' ? 'फायरबेस प्रोजेक्ट क्रेडेंशियल सेटअप' : 'Connect Your Firebase Project'}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    {language === 'hi' ? 'गूगल ऑथेंटिकेशन (Google OAuth) सक्षम करने हेतु' : 'Enable live Google OAuth login for your app'}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowConfigModal(false)}
-                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 space-y-1">
-              <span className="font-bold block">💡 {language === 'hi' ? 'कुंजी कहां से प्राप्त करें?' : 'How to get your Firebase keys:'}</span>
-              <p className="leading-relaxed">
-                1. Go to <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="underline font-bold text-amber-950">Firebase Console</a> &gt; Project Settings &gt; General.
-                <br />
-                2. Under <strong>Your apps</strong> &gt; Web App, copy your <code>firebaseConfig</code> object and paste it below:
-              </p>
-            </div>
-
-            <form onSubmit={handleSaveFirebaseConfig} className="space-y-3.5">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">
-                  {language === 'hi' ? 'विकल्प A: पूरा Firebase Config स्निपेट पेस्ट करें (आसान)' : 'Option A: Paste full Firebase config snippet (Easiest)'}
-                </label>
-                <textarea
-                  rows="3"
-                  value={configSnippet}
-                  onChange={(e) => setConfigSnippet(e.target.value)}
-                  placeholder={'const firebaseConfig = {\n  apiKey: "AIzaSy...",\n  authDomain: "my-app.firebaseapp.com",\n  projectId: "my-app"\n};'}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-mono text-xs text-slate-800 outline-none focus:border-emerald-500 bg-slate-50"
-                ></textarea>
-              </div>
-
-              <div className="relative flex items-center justify-center">
-                <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-2 text-[10px] text-slate-400 font-bold uppercase">or fill fields</span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">API Key *</label>
-                  <input
-                    type="text"
-                    value={configApiKey}
-                    onChange={(e) => setConfigApiKey(e.target.value)}
-                    placeholder="AIzaSy..."
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Project ID *</label>
-                  <input
-                    type="text"
-                    value={configProjectId}
-                    onChange={(e) => setConfigProjectId(e.target.value)}
-                    placeholder="smart-krishi-123"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Auth Domain</label>
-                  <input
-                    type="text"
-                    value={configAuthDomain}
-                    onChange={(e) => setConfigAuthDomain(e.target.value)}
-                    placeholder="smart-krishi-123.firebaseapp.com"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">App ID</label>
-                  <input
-                    type="text"
-                    value={configAppId}
-                    onChange={(e) => setConfigAppId(e.target.value)}
-                    placeholder="1:123456789:web:abcdef"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="submit"
-                  className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>{language === 'hi' ? 'कुंजी सहेजें और सक्रिय करें' : 'Save & Activate Firebase'}</span>
-                  <Check className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowConfigModal(false)}
-                  className="px-4 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition cursor-pointer"
-                >
-                  {language === 'hi' ? 'बंद करें' : 'Close'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
     </div>
   );
