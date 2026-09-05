@@ -25,7 +25,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   ShieldCheck,
-  Check
+  Check,
+  MapPin
 } from 'lucide-react';
 import { CROP_NAMES_MAP } from '../utils/translations';
 import { togglePumpControl } from '../services/api';
@@ -230,9 +231,20 @@ export default function DashboardOverview({
 
   const broadcasts = dashboardData?.broadcasts || [];
 
+  // Dynamic Active Location: Farmer's registered district/state or selected farmLocation
+  const activeLocationCity = useMemo(() => {
+    if (farmerUser?.district && farmerUser?.state) {
+      return `${farmerUser.district}, ${farmerUser.state}`;
+    }
+    if (farmerUser?.district) {
+      return farmerUser.district;
+    }
+    return farmLocation?.city || 'Indore, Madhya Pradesh';
+  }, [farmerUser?.district, farmerUser?.state, farmLocation?.city]);
+
   // Selected Official Advisory Zone State
   const defaultZoneId = useMemo(() => {
-    const loc = (farmLocation?.city || '').toLowerCase();
+    const loc = activeLocationCity.toLowerCase();
     if (loc.includes('uttar pradesh') || loc.includes('kanpur') || loc.includes('lucknow') || loc.includes('up') || loc.includes('varanasi') || loc.includes('agra') || loc.includes('prayagraj') || loc.includes('bareilly') || loc.includes('gorakhpur')) {
       return 'uttar_pradesh';
     }
@@ -255,7 +267,7 @@ export default function DashboardOverview({
       return 'south_india';
     }
     return 'all_india';
-  }, [farmLocation?.city]);
+  }, [activeLocationCity]);
 
   const [selectedAdvisoryZone, setSelectedAdvisoryZone] = useState(defaultZoneId);
   const [showAllAdvisories, setShowAllAdvisories] = useState(false);
@@ -319,7 +331,7 @@ export default function DashboardOverview({
     : `Welcome, ${farmerName} 🙏`;
 
   const getRegionalBulletinData = () => {
-    const loc = farmLocation?.city || "Indore, Madhya Pradesh";
+    const loc = activeLocationCity;
     const locLower = loc.toLowerCase();
     const temp = farmLocation?.temp || weather?.temperature || 29;
     const hum = weather?.humidity || 45;
@@ -609,7 +621,7 @@ export default function DashboardOverview({
               title="Click to Change Farm Location & View Live Weather"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span>
-              <span>🌾 {farmLocation?.city || 'Indore, Madhya Pradesh'}</span>
+              <span>🌾 {activeLocationCity}</span>
               <span className="text-[10px] text-emerald-800 underline font-extrabold group-hover:text-emerald-950 transition ml-1">
                 [{language === 'hi' ? 'मौसम व स्थान बदलें ✏️' : 'Change Location ✏️'}]
               </span>
@@ -692,20 +704,24 @@ export default function DashboardOverview({
               </div>
             </div>
 
-            {/* Interactive Live Weather Pill */}
+            {/* Interactive Live Weather Card */}
             <div 
               onClick={onOpenWeather}
-              className="p-4 rounded-2xl bg-amber-50/80 border border-amber-300 hover:border-amber-400 hover:bg-amber-100 text-center flex flex-col justify-center items-center cursor-pointer transition transform hover:scale-105 group shadow-sm"
-              title={`Live Weather for ${farmLocation.city} — Click to Change Location or View 7-Day Forecast`}
+              className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50/80 border border-amber-300 hover:border-amber-400 hover:bg-amber-100 text-center flex flex-col justify-center items-center cursor-pointer transition transform hover:scale-105 group shadow-sm min-w-[145px]"
+              title={`Live Weather for ${activeLocationCity} — Click to Change Location or View 7-Day Forecast`}
             >
-              <div className="text-2xl sm:text-3xl font-black text-amber-700 flex items-center justify-center gap-1 group-hover:scale-110 transition">
+              <div className="flex items-center justify-center gap-1 text-[11px] font-black text-amber-900 truncate max-w-full mb-0.5">
+                <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span className="truncate">{activeLocationCity}</span>
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-amber-700 flex items-center justify-center gap-1 group-hover:scale-110 transition my-0.5">
                 <CloudSun className="w-6 h-6 text-amber-600 animate-spin-slow" />
                 <span>{farmLocation?.temp || weather?.temperature || 29}°C</span>
               </div>
-              <div className="text-[11px] font-bold text-slate-800 mt-0.5 group-hover:text-amber-900 transition">
-                {farmLocation?.city?.split(',')[0] || 'Live Weather'}
+              <div className="text-[11px] font-bold text-slate-800">
+                {weather?.condition || 'Clear'} • 💧 {weather?.humidity || 45}%
               </div>
-              <div className="text-[10px] text-amber-700 font-extrabold">
+              <div className="text-[10px] text-amber-700 font-extrabold mt-0.5 group-hover:underline">
                 {language === 'hi' ? '7-दिवसीय मौसम ➔' : '7-Day Forecast ➔'}
               </div>
             </div>

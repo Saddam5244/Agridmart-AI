@@ -17,7 +17,7 @@ import {
   Languages
 } from 'lucide-react';
 import { SUPPORTED_LANGUAGES } from '../utils/languages';
-import { signInWithGoogle } from '../services/firebase';
+
 
 // Comprehensive Indian State & District database
 export const STATE_DISTRICT_MAP = {
@@ -128,39 +128,7 @@ const POPULAR_CROPS = [
   { id: "Garlic", en: "Garlic (लहसुन)", hi: "लहसुन" }
 ];
 
-// Preset Demo Farmers for 1-Tap Quick Access
-const DEMO_FARMERS = [
-  {
-    name: "Rajesh Kumar",
-    age: 38,
-    state: "Uttar Pradesh",
-    district: "Kanpur",
-    mobile: "9876543210",
-    primaryCrop: "Wheat",
-    pin: "1234",
-    landholdingAcre: 3.5
-  },
-  {
-    name: "Harpreet Singh",
-    age: 44,
-    state: "Punjab",
-    district: "Ludhiana",
-    mobile: "9812345678",
-    primaryCrop: "Wheat",
-    pin: "1234",
-    landholdingAcre: 6.0
-  },
-  {
-    name: "Shivraj Patil",
-    age: 41,
-    state: "Madhya Pradesh",
-    district: "Indore",
-    mobile: "9988776655",
-    primaryCrop: "Soybean",
-    pin: "1234",
-    landholdingAcre: 4.2
-  }
-];
+
 
 export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess }) {
   const [authMode, setAuthMode] = useState('register'); // 'register' | 'login'
@@ -181,8 +149,7 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
   const [loginMobile, setLoginMobile] = useState('');
   const [loginPin, setLoginPin] = useState('');
 
-  // Google Sign-In State
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
 
   // Districts for selected registration state
   const availableDistricts = useMemo(() => {
@@ -274,23 +241,18 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
       return;
     }
 
-    // Try finding in registered list or matching demo
+    // Try finding in registered list
     let foundFarmer = null;
     try {
       const registered = JSON.parse(localStorage.getItem('agri_registered_farmers') || '[]');
       foundFarmer = registered.find(f => f.mobile === loginMobile.trim() && f.pin === loginPin.trim());
     } catch {}
 
-    if (!foundFarmer) {
-      // Check demo accounts
-      foundFarmer = DEMO_FARMERS.find(f => f.mobile === loginMobile.trim() && f.pin === loginPin.trim());
-    }
-
-    // Fallback: If demo mobile matches but PIN empty or general test
+    // Fallback: If 10-digit mobile number and PIN provided, allow instant seamless entry
     if (!foundFarmer && loginMobile.trim().length === 10) {
       foundFarmer = {
         id: `farmer_login_${Date.now()}`,
-        name: "Kisan Mitra",
+        name: language === 'hi' ? "किसान मित्र" : "Kisan Mitra",
         age: 40,
         state: "Uttar Pradesh",
         district: "Kanpur",
@@ -311,85 +273,9 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
     }
   };
 
-  // 1-Tap Quick Demo Login
-  const handleQuickDemoLogin = (demoFarmer) => {
-    setSuccessMsg(language === 'hi' ? `${demoFarmer.name} के रूप में प्रवेश जारी...` : `Logging in as ${demoFarmer.name}...`);
-    setTimeout(() => {
-      onAuthSuccess(demoFarmer);
-    }, 500);
-  };
 
-  // Firebase Google Sign-In Handler: Instant 1-Click Guaranteed Login
-  const handleGoogleSignInClick = async () => {
-    setIsGoogleLoading(true);
-    setErrorMsg('');
-    setSuccessMsg('');
 
-    try {
-      const result = await signInWithGoogle();
-      if (!result.success) {
-        setErrorMsg(result.message || (language === 'hi' ? 'गूगल साइन-इन विफल रहा।' : 'Google Sign-In failed.'));
-        setIsGoogleLoading(false);
-        return;
-      }
 
-      const gUser = result.user;
-
-      // Check if this Google user was already registered locally
-      let existingFarmer = null;
-      try {
-        const registered = JSON.parse(localStorage.getItem('agri_registered_farmers') || '[]');
-        existingFarmer = registered.find(f => f.email === gUser.email || f.uid === gUser.uid);
-      } catch {}
-
-      if (existingFarmer) {
-        if (gUser.photoURL && !existingFarmer.photoURL) {
-          existingFarmer.photoURL = gUser.photoURL;
-        }
-        setSuccessMsg(language === 'hi' 
-          ? `नमस्ते ${existingFarmer.name}! गूगल लॉगिन सफल...` 
-          : `Welcome ${existingFarmer.name}! Google login successful...`);
-        setTimeout(() => {
-          onAuthSuccess(existingFarmer);
-        }, 400);
-      } else {
-        // Register new Google farmer immediately and enter dashboard with zero friction!
-        const newFarmer = {
-          id: `farmer_google_${Date.now()}`,
-          uid: gUser.uid,
-          name: gUser.name || "Kisan Mitra",
-          email: gUser.email || "",
-          photoURL: gUser.photoURL || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-          age: 38,
-          state: "Madhya Pradesh",
-          district: "Indore",
-          primaryCrop: "Wheat",
-          landholdingAcre: 3.5,
-          mobile: "",
-          provider: "google",
-          registeredAt: new Date().toISOString()
-        };
-
-        try {
-          const registered = JSON.parse(localStorage.getItem('agri_registered_farmers') || '[]');
-          registered.unshift(newFarmer);
-          localStorage.setItem('agri_registered_farmers', JSON.stringify(registered));
-        } catch {}
-
-        setSuccessMsg(language === 'hi'
-          ? `नमस्ते ${newFarmer.name}! गूगल लॉगिन सफल, डैशबोर्ड पर ले जाया जा रहा है...`
-          : `Welcome ${newFarmer.name}! Google login successful, accessing dashboard...`);
-        setTimeout(() => {
-          onAuthSuccess(newFarmer);
-        }, 400);
-      }
-    } catch (err) {
-      console.error("Google Auth error:", err);
-      setErrorMsg(language === 'hi' ? 'गूगल प्रमाणीकरण में त्रुटि आई।' : 'Error during Google authentication.');
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  };
 
 
 
@@ -501,40 +387,7 @@ export default function FarmerAuth({ language = "hi", setLanguage, onAuthSuccess
           </div>
         )}
 
-        {/* 🌟 FIREBASE GOOGLE SIGN-IN BUTTON */}
-        <div className="space-y-2.5">
-          <button
-            type="button"
-            onClick={handleGoogleSignInClick}
-            disabled={isGoogleLoading}
-            className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300 text-slate-800 font-black text-sm sm:text-base transition flex items-center justify-center gap-3 shadow-sm hover:shadow-md cursor-pointer disabled:opacity-60 group"
-          >
-            {isGoogleLoading ? (
-              <div className="w-5 h-5 border-2 border-slate-300 border-t-emerald-600 rounded-full animate-spin"></div>
-            ) : (
-              <svg className="w-5 h-5 group-hover:scale-105 transition-transform shrink-0" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-              </svg>
-            )}
-            <span>
-              {isGoogleLoading 
-                ? (language === 'hi' ? 'गूगल खाता जुड़ रहा है...' : 'Connecting to Google...')
-                : (language === 'hi' ? 'Google से साइन-इन करें' : 'Continue with Google')}
-            </span>
-          </button>
 
-
-
-          <div className="relative flex items-center justify-center pt-1">
-            <div className="border-t border-slate-200 w-full"></div>
-            <span className="bg-white px-3 text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0">
-              {language === 'hi' ? 'या मोबाइल नंबर से' : 'or with mobile number'}
-            </span>
-          </div>
-        </div>
 
         {/* ======================================================== */}
         {/* 1. REGISTRATION FORM (Name, State, District, Age, Crop) */}

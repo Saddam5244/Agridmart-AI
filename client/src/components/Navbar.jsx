@@ -113,8 +113,9 @@ export default function Navbar({
                 title={`Live Satellite Weather for ${farmLocation.city} — Click to Change Location`}
               >
                 <CloudSun className="w-3.5 h-3.5 text-amber-600" />
-                <span className="hidden sm:inline">
-                  {farmLocation.city.split(',')[0]} ({farmLocation.temp || 29}°C)
+                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs">
+                  <span>📍 {farmLocation.city.split(',')[0]}</span>
+                  <span className="text-amber-700 font-extrabold">({farmLocation.temp || 29}°C)</span>
                 </span>
               </button>
 
