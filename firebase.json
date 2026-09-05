@@ -3,6 +3,7 @@
     "rules": "firestore.rules"
   },
   "hosting": {
+    "site": "agrismrt",
     "public": "client/dist",
     "ignore": [
       "firebase.json",

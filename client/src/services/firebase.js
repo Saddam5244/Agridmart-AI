@@ -21,11 +21,11 @@ export function getFirebaseConfig() {
 
   return {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyA16p31FGhOMm2fbA9LqIT0y-_htr8e7GI",
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "studio-7214435905-c3472.firebaseapp.com",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "agrismrt.firebaseapp.com",
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "studio-7214435905-c3472",
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "studio-7214435905-c3472.firebasestorage.app",
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1071907698953",
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1071907698953:web:f1c25a68bbeac3e79ffbd8"
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1071907698953:web:6e3850bbbd182a939ffbd8"
   };
 }
 
